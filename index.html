@@ -4,29 +4,580 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clash Strike</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+            background-image: radial-gradient(circle, #2a2a2a 0%, #1a1a1a 100%);
+        }
+        
+        .title {
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+        
+        .battlefield {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+            min-height: 350px;
+        }
+        
+        .character {
+            width: 220px;
+            height: 320px;
+            background-color: #2a2a2a;
+            border-radius: 15px;
+            border: 3px solid #444;
+            padding: 15px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .character h2 {
+            margin-top: 10px;
+            color: #fff;
+            font-size: 1.5rem;
+        }
+        
+        .character.player {
+            border-color: #4dabf7;
+        }
+        
+        .character.enemy {
+            border-color: #ff6b6b;
+        }
+        
+        .health-bar-container {
+            width: 100%;
+            height: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .health-bar {
+            height: 100%;
+            background: linear-gradient(to right, #51cf66, #40c057);
+            width: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .enemy .health-bar {
+            background: linear-gradient(to right, #ff6b6b, #f03e3e);
+        }
+        
+        .health-text {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .character-img {
+            width: 120px;
+            height: 120px;
+            background-color: #333;
+            border-radius: 50%;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 3px solid #444;
+        }
+        
+        .player .character-img {
+            border-color: #4dabf7;
+            background-color: #364fc7;
+        }
+        
+        .enemy .character-img {
+            border-color: #ff6b6b;
+            background-color: #c92a2a;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .actions button {
+            background: linear-gradient(to bottom, #4dabf7, #228be6);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .actions button:active {
+            transform: translateY(1px);
+        }
+        
+        #playerHeal {
+            background: linear-gradient(to bottom, #51cf66, #40c057);
+        }
+        
+        #playerSpecial {
+            background: linear-gradient(to bottom, #fcc419, #fab005);
+        }
+        
+        .log {
+            margin-top: 20px;
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+            border: 1px solid #444;
+        }
+        
+        .log p {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+        }
+        
+        .log p:last-child {
+            border-bottom: none;
+            color: #fcc419;
+            font-weight: bold;
+        }
+        
+        .attack-animation {
+            position: absolute;
+            font-size: 3rem;
+            animation: attack 0.5s;
+            z-index: 10;
+        }
+        
+        @keyframes attack {
+            0% { transform: scale(1); opacity: 0; }
+            50% { transform: scale(2); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        
+        .damage-number {
+            position: absolute;
+            color: #ff6b6b;
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: floatUp 1s forwards;
+        }
+        
+        .heal-number {
+            position: absolute;
+            color: #51cf66;
+            font-size: 1.5rem;
+            font-weight: bold;
+            animation: floatUp 1s forwards;
+        }
+        
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+        
+        .character.attacking {
+            animation: shake 0.3s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .enemy-select {
+            margin-bottom: 20px;
+        }
+        
+        select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            background-color: #444;
+            color: white;
+            border: none;
+            font-size: 1rem;
+        }
+    </style>
 </head>
 <body>
-
     <h2 class="title">Clash Strike!</h2>
+    
+    <div class="enemy-select">
+        <select id="enemyType">
+            <option value="goblin">Goblin</option>
+            <option value="orc">Orc</option>
+            <option value="skeleton">Skeleton</option>
+            <option value="dragon">Dragon</option>
+        </select>
+        <button id="startGame">Start Battle</button>
+    </div>
+
     <div class="battlefield">
-        <div class="character" id="player">
+        <div class="character player" id="player">
+            <div class="character-img">🧙</div>
             <h2>Darell</h2>
-            <p><span class="hp" id="playerHp">100</span></p>
+            <div class="health-text"><span class="hp" id="playerHp">100</span>/<span id="playerMaxHp">100</span></div>
+            <div class="health-bar-container">
+                <div class="health-bar" id="playerHealthBar"></div>
+            </div>
         </div>
         
-        <div class="character" id="enemy">
-            <h2>enemy</h2>
-            <p><span class="hp" id="enemyHp">100</span></p>
+        <div class="character enemy" id="enemy">
+            <div class="character-img" id="enemyImg">👹</div>
+            <h2 id="enemyName">Enemy</h2>
+            <div class="health-text"><span class="hp" id="enemyHp">100</span>/<span id="enemyMaxHp">100</span></div>
+            <div class="health-bar-container">
+                <div class="health-bar" id="enemyHealthBar"></div>
+            </div>
         </div>
     </div>
 
     <div class="actions">
         <button id="playerAttack">Attack</button>
         <button id="playerHeal">Heal</button>
+        <button id="playerSpecial">Special</button>
     </div>
 
-    <div class="log" id="log">Your move.</div>
-<script src="main.js"></script>
+    <div class="log" id="log">Select an enemy and start the battle!</div>
+
+    <script>
+        // Game data
+        const enemies = {
+            goblin: {
+                name: "Goblin",
+                emoji: "👺",
+                maxHp: 80,
+                attackMin: 5,
+                attackMax: 12,
+                healMin: 5,
+                healMax: 10,
+                specialChance: 0.2
+            },
+            orc: {
+                name: "Orc",
+                emoji: "👹",
+                maxHp: 120,
+                attackMin: 8,
+                attackMax: 15,
+                healMin: 8,
+                healMax: 12,
+                specialChance: 0.3
+            },
+            skeleton: {
+                name: "Skeleton",
+                emoji: "💀",
+                maxHp: 70,
+                attackMin: 7,
+                attackMax: 14,
+                healMin: 0,
+                healMax: 0, // Skeletons can't heal
+                specialChance: 0.4
+            },
+            dragon: {
+                name: "Dragon",
+                emoji: "🐲",
+                maxHp: 150,
+                attackMin: 10,
+                attackMax: 20,
+                healMin: 10,
+                healMax: 15,
+                specialChance: 0.5
+            }
+        };
+        
+        let player = {
+            name: "Darell",
+            health: 100,
+            maxHp: 100,
+            attackMin: 8,
+            attackMax: 15,
+            healMin: 10,
+            healMax: 20,
+            specialCharge: 0,
+            specialMax: 3
+        };
+        
+        let enemy = {};
+        let playerTurn = true;
+        let gameActive = false;
+        
+        // DOM elements
+        const attackButton = document.querySelector("#playerAttack");
+        const healButton = document.querySelector("#playerHeal");
+        const specialButton = document.querySelector("#playerSpecial");
+        const startButton = document.querySelector("#startGame");
+        const enemySelect = document.querySelector("#enemyType");
+        
+        // Event listeners
+        attackButton.addEventListener("click", playerAttack);
+        healButton.addEventListener("click", playerHeal);
+        specialButton.addEventListener("click", playerSpecial);
+        startButton.addEventListener("click", startGame);
+        
+        // Initialize UI
+        updateUI();
+        
+        function startGame() {
+            const enemyType = enemySelect.value;
+            enemy = JSON.parse(JSON.stringify(enemies[enemyType]));
+            enemy.hp = enemy.maxHp;
+            
+            player.health = player.maxHp;
+            player.specialCharge = 0;
+            
+            gameActive = true;
+            playerTurn = true;
+            
+            document.getElementById("enemyName").textContent = enemy.name;
+            document.getElementById("enemyImg").textContent = enemy.emoji;
+            
+            attackButton.disabled = false;
+            healButton.disabled = false;
+            specialButton.disabled = false;
+            
+            log(`A wild ${enemy.name} appears! Battle begins!`);
+            updateUI();
+        }
+        
+        function updateUI() {
+            // Update player stats
+            document.querySelector("#playerHp").textContent = player.health;
+            document.querySelector("#playerMaxHp").textContent = player.maxHp;
+            document.querySelector("#playerHealthBar").style.width = `${(player.health / player.maxHp) * 100}%`;
+            
+            // Update enemy stats if enemy exists
+            if (enemy.hp !== undefined) {
+                document.querySelector("#enemyHp").textContent = enemy.hp;
+                document.querySelector("#enemyMaxHp").textContent = enemy.maxHp;
+                document.querySelector("#enemyHealthBar").style.width = `${(enemy.hp / enemy.maxHp) * 100}%`;
+            }
+            
+            // Update special button
+            specialButton.textContent = `Special (${player.specialCharge}/${player.specialMax})`;
+            specialButton.disabled = player.specialCharge < player.specialMax || !playerTurn || !gameActive;
+            
+            // Disable buttons when not player's turn or game over
+            attackButton.disabled = !playerTurn || !gameActive;
+            healButton.disabled = !playerTurn || !gameActive;
+        }
+        
+        function log(message) {
+            const logElement = document.querySelector("#log");
+            const newEntry = document.createElement("p");
+            newEntry.textContent = message;
+            
+            // Move previous messages up
+            const entries = logElement.querySelectorAll("p");
+            if (entries.length >= 5) {
+                logElement.removeChild(entries[0]);
+            }
+            
+            // Add new entry at the bottom
+            logElement.appendChild(newEntry);
+            
+            // Scroll to bottom
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function createDamageNumber(value, isHeal = false, target = "enemy") {
+            const targetElement = document.querySelector(`#${target}`);
+            const number = document.createElement("div");
+            
+            number.className = isHeal ? "heal-number" : "damage-number";
+            number.textContent = isHeal ? `+${value}` : `-${value}`;
+            number.style.left = `${Math.random() * 100}px`;
+            
+            targetElement.appendChild(number);
+            
+            // Remove after animation
+            setTimeout(() => {
+                number.remove();
+            }, 1000);
+        }
+        
+        function createAttackAnimation(emoji, target = "enemy") {
+            const targetElement = document.querySelector(`#${target}`);
+            const attack = document.createElement("div");
+            
+            attack.className = "attack-animation";
+            attack.textContent = emoji;
+            attack.style.left = `${Math.random() * 100}px`;
+            attack.style.top = `${Math.random() * 100}px`;
+            
+            targetElement.appendChild(attack);
+            
+            // Remove after animation
+            setTimeout(() => {
+                attack.remove();
+            }, 500);
+        }
+        
+        function shakeCharacter(target) {
+            const character = document.querySelector(`#${target}`);
+            character.classList.add("attacking");
+            
+            setTimeout(() => {
+                character.classList.remove("attacking");
+            }, 300);
+        }
+        
+        function playerAttack() {
+    if (!playerTurn || !gameActive) return;
+    
+    const damage = Math.floor(Math.random() * (player.attackMax - player.attackMin + 1)) + player.attackMin;
+    enemy.hp = Math.max(0, enemy.hp - damage);
+    
+    // Visual effects
+    createAttackAnimation("⚔️", "player");
+    shakeCharacter("enemy");
+    createDamageNumber(damage);
+    
+    log(`You attack the ${enemy.name} for ${damage} damage!`);
+    
+    player.specialCharge = Math.min(player.specialCharge + 1, player.specialMax);
+    
+    updateUI();
+    
+    // Check if enemy is defeated
+    if (enemy.hp <= 0) {
+        checkGameOver();
+        return;
+    }
+    
+    playerTurn = false;
+    updateUI(); // Disable player buttons
+    setTimeout(enemyTurn, 1500);
+}
+
+        
+      function playerHeal() {
+    if (!playerTurn || !gameActive) return;
+    
+    const heal = Math.floor(Math.random() * (player.healMax - player.healMin + 1)) + player.healMin;
+    player.health = Math.min(player.maxHp, player.health + heal);
+    
+    // Visual effects
+    createAttackAnimation("💚", "player");
+    createDamageNumber(heal, true, "player");
+    
+    log(`You heal yourself for ${heal} health!`);
+    
+    player.specialCharge = Math.min(player.specialCharge + 1, player.specialMax);
+    
+    updateUI();
+    playerTurn = false;
+    setTimeout(enemyTurn, 1500);
+}
+        
+        function playerSpecial() {
+    if (!playerTurn || !gameActive || player.specialCharge < player.specialMax) return;
+    
+    const damage = Math.floor(Math.random() * (player.attackMax * 2 - player.attackMin * 2 + 1)) + player.attackMin * 2;
+    enemy.hp = Math.max(0, enemy.hp - damage);
+    
+    // Visual effects
+    createAttackAnimation("💥", "player");
+    shakeCharacter("enemy");
+    createDamageNumber(damage);
+    
+    log(`You use a SPECIAL ATTACK on the ${enemy.name} for ${damage} damage!`);
+    
+    player.specialCharge = 0;
+    updateUI();
+    
+    // Check if enemy is defeated
+    if (enemy.hp <= 0) {
+        checkGameOver();
+        return;
+    }
+    
+    playerTurn = false;
+    setTimeout(enemyTurn, 1500);
+}
+        
+        function enemyTurn() {
+    if (playerTurn || !gameActive) return;
+    
+    // Enemy action logic
+    if (Math.random() < enemy.specialChance && enemy.hp < enemy.maxHp * 0.5) {
+        // Special attack
+        const damage = Math.floor(Math.random() * (enemy.attackMax * 1.5 - enemy.attackMin * 1.5 + 1)) + enemy.attackMin * 1.5;
+        player.health = Math.max(0, player.health - damage);
+        createAttackAnimation("💢", "enemy");
+        shakeCharacter("player");
+        createDamageNumber(damage, false, "player");
+        log(`The ${enemy.name} uses a SPECIAL ATTACK on you for ${damage} damage!`);
+    } else {
+        // Regular action
+        if (enemy.healMax > 0 && (enemy.hp < enemy.maxHp * 0.4 || Math.random() > 0.7)) {
+            // Heal
+            const heal = Math.floor(Math.random() * (enemy.healMax - enemy.healMin + 1)) + enemy.healMin;
+            enemy.hp = Math.min(enemy.maxHp, enemy.hp + heal);
+            createAttackAnimation("💚", "enemy");
+            createDamageNumber(heal, true, "enemy");
+            log(`The ${enemy.name} heals itself for ${heal} health!`);
+        } else {
+            // Attack
+            const damage = Math.floor(Math.random() * (enemy.attackMax - enemy.attackMin + 1)) + enemy.attackMin;
+            player.health = Math.max(0, player.health - damage);
+            createAttackAnimation("⚔️", "enemy");
+            shakeCharacter("player");
+            createDamageNumber(damage, false, "player");
+            log(`The ${enemy.name} attacks you for ${damage} damage!`);
+        }
+    }
+    
+    updateUI();
+    
+    // Check if player is defeated
+    if (player.health <= 0) {
+        checkGameOver();
+        return;
+    }
+    
+    // Return control to player
+    playerTurn = true;
+    updateUI();
+}
+        
+        function checkGameOver() {
+            if (player.health <= 0) {
+                log(`You have been defeated by the ${enemy.name}! Game over.`);
+                gameActive = false;
+                updateUI();
+            } else if (enemy.hp <= 0) {
+                log(`You have defeated the ${enemy.name}! Victory!`);
+                gameActive = false;
+                updateUI();
+            }
+        }
+    </script>
 </body>
 </html>
